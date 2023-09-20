@@ -28,49 +28,44 @@
 * at 0.
 *
 */
-err::eErrorCode solver_1(int n_timesteps, int n_nodes, float amp) {
-
-    // create vector of vector<float> n_timesteps x n_nodes to represent
-    // a "temperature matrix"
-    std::vector<std::vector<float>> *t_matrix_p =
-        new std::vector<std::vector<float>>(n_timesteps, std::vector<float>(n_nodes));
+err::eErrorCode solver_1(int n_timesteps, std::vector<double> & temps_n, std::vector<double> & temps_n_plus_1, int n_nodes, float amp) {
 
     // set boundary at 100 temperature units
-    for (int i=0; i<n_timesteps; ++i) {
-#ifdef DEBUG
-        std::cout << i << std::endl;
-#endif
-        (*t_matrix_p)[i][0] = 100.0;
-    }
+    temps_n[0]        = 100.0;
+    temps_n_plus_1[0] = 100.0;
 
     /********** DEBUGGING ONLY **********/
     for (int i = 0; i<n_timesteps-1; ++i) {
         for (int j = 0; j<n_nodes; ++j) {
 
 #ifdef DEBUG
-            std::cout << std::fixed << std::setprecision(5) << (*t_matrix_p)[i][j] << " ";
+            std::cout << std::fixed << std::setprecision(7) << (temps_n)[j] << " ";
 #endif
 
-            // left boudnary condition
-            if (j==0) { (*t_matrix_p)[i+1][j] = (*t_matrix_p)[i][j]; }
+            // left boudnary condition simply assigns the same value
+            if (j==0) { temps_n_plus_1[j] = temps_n[j]; }
 
             // right boundary condition
             else if (i==n_nodes-1) {
-                (*t_matrix_p)[i+1][j] = amp * ((*t_matrix_p)[i][j-2] - 2*(*t_matrix_p)[i][j-1] + (*t_matrix_p)[i][j]);
+                temps_n_plus_1[j] = amp * (temps_n[j-2] - 2*temps_n[j-1] + temps_n[j]);
             }
 
             else {
-                (*t_matrix_p)[i+1][j] = amp * ((*t_matrix_p)[i][j-1] - 2*(*t_matrix_p)[i][j] + (*t_matrix_p)[i][j+1]);
+                temps_n_plus_1[j] = amp * (temps_n[j-1] - 2*temps_n[j] + temps_n[j+1]);
             }
-        }
+        } // end node iteration
 #ifdef DEBUG
         std::cout << "\n";
 #endif
-    }
-    std::flush(std::cout);
-    /********** DEBUGGING ONLY **********/
 
-    delete t_matrix_p;
+        // swap vectors to keep cycling through
+        temps_n.swap(temps_n_plus_1);
+
+    } // end timestep iteration
+    std::flush(std::cout);
+
+    /********** END DEBUGGING ONLY **********/
+
 
     return err::SUCCESS;
 

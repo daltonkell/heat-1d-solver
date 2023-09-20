@@ -69,7 +69,15 @@ int main(int argc, char* argv[]) {
 
     if (!stable) return err::UNSTABLE_PARAMETERS;
 
-    return_code = solver_1(n_timesteps, n_nodes, amp);
+    // allocate memory here for past and current timesteps; each vector will
+    // have the same number of nodes
+    std::vector<double> v_nodes_tstep_n(n_nodes);
+    std::vector<double> v_nodes_tstep_n_plus_1(n_nodes);
+
+    // execute solver on it
+    return_code = solver_1(n_timesteps, v_nodes_tstep_n, v_nodes_tstep_n_plus_1, n_nodes, amp);
+
+    // vector cleanup part of destructor
 
     return return_code;
 }

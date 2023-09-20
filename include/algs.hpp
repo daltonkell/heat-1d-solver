@@ -16,6 +16,6 @@
 *
 *
 */
-err::eErrorCode solver_1(int n_timesteps, int n_nodes, float amp);
+err::eErrorCode solver_1(int n_timesteps, std::vector<double> & temps_n, std::vector<double> & temps_n_plus_1, int n_nodes, float amp);
 
 #endif
