@@ -43,6 +43,7 @@ err::eErrorCode solver_1(
     temps_n[0]        = 100.0;
     temps_n_plus_1[0] = 100.0;
 
+#if defined WRITEOUT && WRITEOUT==1
     // create "format string" (C++17 friendly) used for output file
     // TODO: use stringstream instead
     std::string fname = data_file_prefix + "_" + std::to_string(n_timesteps) + "_" + std::to_string(n_nodes) + ".out.bin";
@@ -50,8 +51,9 @@ err::eErrorCode solver_1(
     // create output file buffer to write binary data to; open for appending
     // so we don't have to create as many files
     std::ofstream outbuf(fname, std::ios::binary | std::ios::app);
+#endif
 
-    for (int i = 0; i<n_timesteps-1; ++i) {
+    for (int i = 0; i<n_timesteps; ++i) {
 
         for (int j = 0; j<n_nodes - 1; ++j) {
 
@@ -73,9 +75,11 @@ err::eErrorCode solver_1(
 
         } // end node iteration
 
+#if defined WRITEOUT && WRITEOUT==1
         // push to buffer
         outbuf.write(reinterpret_cast<char *>(temps_n_plus_1.data()), sizeof(double)*n_nodes);
         outbuf.flush(); // sync to filesystem
+#endif
 
 #if defined DEBUG && DEBUG==1
         std::cout << "\n";
@@ -86,13 +90,14 @@ err::eErrorCode solver_1(
 
     } // end timestep iteration
 
+#if defined WRITEOUT && WRITEOUT==1
     // close output file stream
     outbuf.close();
+#endif
 
 #if defined DEBUG && DEBUG==1
     std::flush(std::cout);
 #endif
-
 
 
     return err::SUCCESS;
