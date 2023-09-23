@@ -3,8 +3,10 @@
 */
 
 #include <iostream> // cout, DEBUGGING ONLY
+#include <fstream>
 #include <iomanip>
 #include <vector>
+#include <string>
 #include "error_codes.hpp" // namespace err
 
 /**
@@ -28,17 +30,32 @@
 * at 0.
 *
 */
-err::eErrorCode solver_1(int n_timesteps, std::vector<double> & temps_n, std::vector<double> & temps_n_plus_1, int n_nodes, float amp) {
+err::eErrorCode solver_1(
+    int n_timesteps,
+    std::vector<double> & temps_n,
+    std::vector<double> & temps_n_plus_1,
+    int n_nodes,
+    float amp,
+    std::string & data_file_prefix
+) {
 
     // set boundary at 100 temperature units
     temps_n[0]        = 100.0;
     temps_n_plus_1[0] = 100.0;
 
-    /********** DEBUGGING ONLY **********/
-    for (int i = 0; i<n_timesteps-1; ++i) {
-        for (int j = 0; j<n_nodes; ++j) {
+    // create "format string" (C++17 friendly) used for output file
+    // TODO: use stringstream instead
+    std::string fname = data_file_prefix + "_" + std::to_string(n_timesteps) + "_" + std::to_string(n_nodes) + ".out.bin";
 
-#ifdef DEBUG
+    // create output file buffer to write binary data to; open for appending
+    // so we don't have to create as many files
+    std::ofstream outbuf(fname, std::ios::binary | std::ios::app);
+
+    for (int i = 0; i<n_timesteps-1; ++i) {
+
+        for (int j = 0; j<n_nodes - 1; ++j) {
+
+#if defined DEBUG && DEBUG==1
             std::cout << std::fixed << std::setprecision(7) << (temps_n)[j] << " ";
 #endif
 
@@ -53,8 +70,14 @@ err::eErrorCode solver_1(int n_timesteps, std::vector<double> & temps_n, std::ve
             else {
                 temps_n_plus_1[j] = amp * (temps_n[j-1] - 2*temps_n[j] + temps_n[j+1]);
             }
+
         } // end node iteration
-#ifdef DEBUG
+
+        // push to buffer
+        outbuf.write(reinterpret_cast<char *>(temps_n_plus_1.data()), sizeof(double)*n_nodes);
+        outbuf.flush(); // sync to filesystem
+
+#if defined DEBUG && DEBUG==1
         std::cout << "\n";
 #endif
 
@@ -62,9 +85,14 @@ err::eErrorCode solver_1(int n_timesteps, std::vector<double> & temps_n, std::ve
         temps_n.swap(temps_n_plus_1);
 
     } // end timestep iteration
-    std::flush(std::cout);
 
-    /********** END DEBUGGING ONLY **********/
+    // close output file stream
+    outbuf.close();
+
+#if defined DEBUG && DEBUG==1
+    std::flush(std::cout);
+#endif
+
 
 
     return err::SUCCESS;

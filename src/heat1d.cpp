@@ -74,8 +74,11 @@ int main(int argc, char* argv[]) {
     std::vector<double> v_nodes_tstep_n(n_nodes);
     std::vector<double> v_nodes_tstep_n_plus_1(n_nodes);
 
+    // outfile prefix; each timestep will have a file
+    std::string datafile_pref{"test"};
+
     // execute solver on it
-    return_code = solver_1(n_timesteps, v_nodes_tstep_n, v_nodes_tstep_n_plus_1, n_nodes, amp);
+    return_code = solver_1(n_timesteps, v_nodes_tstep_n, v_nodes_tstep_n_plus_1, n_nodes, amp, datafile_pref);
 
     // vector cleanup part of destructor
 
