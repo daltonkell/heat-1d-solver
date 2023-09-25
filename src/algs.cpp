@@ -104,3 +104,101 @@ err::eErrorCode solver_1(
 
 }
 
+
+/**
+* solver 2
+* Nearly identical to sovler_1, save for using OpenMP to parallelize the computation
+* across the nodes.
+*/
+err::eErrorCode solver_2(
+    int n_timesteps,
+    std::vector<double> & temps_n,
+    std::vector<double> & temps_n_plus_1,
+    int n_nodes,
+    float amp,
+    std::string & data_file_prefix
+) {
+
+    // set boundary at 100 temperature units
+    temps_n[0]        = 100.0;
+    temps_n_plus_1[0] = 100.0;
+
+#if defined WRITEOUT && WRITEOUT==1
+    // create "format string" (C++17 friendly) used for output file
+    // TODO: use stringstream instead
+    std::string fname = data_file_prefix + "_" + std::to_string(n_timesteps) + "_" + std::to_string(n_nodes) + ".out.bin";
+
+    // create output file buffer to write binary data to; open for appending
+    // so we don't have to create as many files
+    std::ofstream outbuf(fname, std::ios::binary | std::ios::app);
+#endif
+
+    // create indexing variables to use for iterating through timesteps
+    // and nodes; define them here so they can be local to each thread
+    // created using OpenMP
+    int i, j;
+    i = j = 0;
+
+    // create threads with local indices i, j
+    #pragma omp parallel private (i, j)
+    {
+        for (i = 0; i<n_timesteps; ++i) {
+
+            // decompose iterations of parallel for loop into one contiguous block
+            // per thread
+            #pragma omp for schedule(static)
+            for (j = 0; j<n_nodes - 1; ++j) {
+
+#if defined DEBUG && DEBUG==1
+                std::cout << std::fixed << std::setprecision(7) << (temps_n)[j] << " ";
+#endif
+
+                // left boudnary condition simply assigns the same value
+                if (j==0) { temps_n_plus_1[j] = temps_n[j]; }
+
+                // right boundary condition
+                else if (i==n_nodes-1) {
+                    temps_n_plus_1[j] = amp * (temps_n[j-2] - 2*temps_n[j-1] + temps_n[j]);
+                }
+
+                else {
+                    temps_n_plus_1[j] = amp * (temps_n[j-1] - 2*temps_n[j] + temps_n[j+1]);
+                }
+
+            } // end node iteration
+
+#if defined DEBUG && DEBUG==1
+            #pragma omp single // only single thread can flush buffer
+            std::cout << "\n";
+            std::flush(std::cout);
+#endif
+
+#if defined WRITEOUT && WRITEOUT==1
+
+            // push to buffer; NOTE must enforce single write/flush
+            #pragma omp single
+            outbuf.write(reinterpret_cast<char *>(temps_n_plus_1.data()), sizeof(double)*n_nodes);
+            outbuf.flush(); // sync to filesystem
+#endif
+
+            // swap vectors to keep cycling through
+            #pragma omp single // only one thread can act
+            temps_n.swap(temps_n_plus_1);
+
+        } // end timestep iteration
+
+    } // end parallel private block
+
+    //
+    // back to single-threaded program
+    //
+
+#if defined WRITEOUT && WRITEOUT==1
+    // close output file stream
+    outbuf.close();
+#endif
+
+    return err::SUCCESS;
+
+}
+

@@ -29,8 +29,8 @@ int main(int argc, char* argv[]) {
      * 2: timesteps
      * 3: nodes
      */
-    if (argc != 3) {
-        std::cout << "ERROR: you must supply n_timesteps and n_nodes" << std::endl;
+    if (argc != 4) {
+        std::cout << "ERROR: supply n_timesteps, n_nodes, solver choice (1 | 2)" << std::endl;
         return err::INVALID_PARAMETERS;
     }
 
@@ -42,6 +42,7 @@ int main(int argc, char* argv[]) {
     float amp       = 0.0;        // amplitude
     int n_timesteps = 0;          // number time steps
     int n_nodes     = 0;          // number nodes
+    int alg_choice  = 0;          // solver algorithm choice
     std::string stability_string; // string to contain stability test message
     err::eErrorCode return_code;  // return code for main program
 
@@ -51,6 +52,7 @@ int main(int argc, char* argv[]) {
 
     n_timesteps = std::stoi(argv[1]);
     n_nodes     = std::stoi(argv[2]);
+    alg_choice  = std::stoi(argv[3]);
 
     // tell the users what they put in
     std::cout << "Number timesteps: " << n_timesteps << "\n"
@@ -78,7 +80,18 @@ int main(int argc, char* argv[]) {
     std::string datafile_pref{"test"};
 
     // execute solver on it
-    return_code = solver_1(n_timesteps, v_nodes_tstep_n, v_nodes_tstep_n_plus_1, n_nodes, amp, datafile_pref);
+    switch (alg_choice) {
+        case 1:
+            // brute force solver
+            return_code = solver_1(n_timesteps, v_nodes_tstep_n, v_nodes_tstep_n_plus_1, n_nodes, amp, datafile_pref);
+            break;
+        case 2:
+            // OpenMP enabled solver
+            return_code = solver_2(n_timesteps, v_nodes_tstep_n, v_nodes_tstep_n_plus_1, n_nodes, amp, datafile_pref);
+            break;
+        default:
+            return_code = err::BAD_SOLVER_CHOICE;
+    }
 
     // vector cleanup part of destructor
 

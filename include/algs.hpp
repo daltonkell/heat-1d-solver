@@ -26,4 +26,13 @@ err::eErrorCode solver_1(
     std::string & data_file_prefix
 );
 
+err::eErrorCode solver_2(
+    int n_timesteps,
+    std::vector<double> & temps_n,
+    std::vector<double> & temps_n_plus_1,
+    int n_nodes,
+    float amp,
+    std::string & data_file_prefix
+);
+
 #endif
