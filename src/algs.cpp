@@ -39,10 +39,6 @@ err::eErrorCode solver_1(
     std::string & data_file_prefix
 ) {
 
-    // set boundary at 100 temperature units
-    temps_n[0]        = 100.0;
-    temps_n_plus_1[0] = 100.0;
-
 #if defined WRITEOUT && WRITEOUT==1
     // create "format string" (C++17 friendly) used for output file
     // TODO: use stringstream instead
@@ -118,10 +114,6 @@ err::eErrorCode solver_2(
     float amp,
     std::string & data_file_prefix
 ) {
-
-    // set boundary at 100 temperature units
-    temps_n[0]        = 100.0;
-    temps_n_plus_1[0] = 100.0;
 
 #if defined WRITEOUT && WRITEOUT==1
     // create "format string" (C++17 friendly) used for output file

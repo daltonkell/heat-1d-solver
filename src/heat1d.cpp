@@ -72,9 +72,13 @@ int main(int argc, char* argv[]) {
     if (!stable) return err::UNSTABLE_PARAMETERS;
 
     // allocate memory here for past and current timesteps; each vector will
-    // have the same number of nodes
-    std::vector<double> v_nodes_tstep_n(n_nodes);
-    std::vector<double> v_nodes_tstep_n_plus_1(n_nodes);
+    // have the same number of nodes; initialize memory with 0.0
+    std::vector<double> v_nodes_tstep_n(n_nodes, 0.0);
+    std::vector<double> v_nodes_tstep_n_plus_1(n_nodes, 0.0);
+
+    // initialize boundary conditions at 100 temperature units
+    v_nodes_tstep_n[0]        = 100.0;
+    v_nodes_tstep_n_plus_1[0] = 100.0;
 
     // outfile prefix; each timestep will have a file
     std::string datafile_pref{"test"};

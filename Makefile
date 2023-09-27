@@ -1,7 +1,7 @@
 # Makefile for heat1fdm
 
-CXX=g++
-CXXFLAGS=
+CXX=clang++
+CXXFLAGS=-std=c++17
 
 # use if compiling with OpenMP
 USEOMP=$(SET_USEOMP)
